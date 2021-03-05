@@ -32,9 +32,9 @@ class FileUploadController extends Controller
 
         if (($handle = fopen($request->file, 'r')) !== false)
         {
+            $notStoredData = [];
             while (($row = fgetcsv($handle, 1000, ',')) !== false)
             {
-                $notStoredData = [];
                 $checkExist = Student::where('email','like',$row[2])->exists();
                 if(!$checkExist) {
                     try{
