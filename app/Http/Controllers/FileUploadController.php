@@ -34,26 +34,35 @@ class FileUploadController extends Controller
         {
             while (($row = fgetcsv($handle, 1000, ',')) !== false)
             {
-                try{
-                    \DB::beginTransaction();
-                    $student = new Student;
-                    $student->first_name = $row[0];
-                    $student->last_name = $row[1];
-                    $student->email = $row[2];
-                    $student->save();
-                    for($i = 3; $i<count($row); $i++){
-                        if(!empty($row[$i] || $row[$i] != null || $row[$i] != ""))
-                        \DB::table('addresses')->insert(['student_id'=>$student->id,'address'=>$row[$i]]);
+                $notStoredData = [];
+                $checkExist = Student::where('email','like',$row[2])->exists();
+                if(!$checkExist) {
+                    try{
+                   
+                        \DB::beginTransaction();
+                        $student = new Student;
+                        $student->first_name = $row[0];
+                        $student->last_name = $row[1];
+                        $student->email = $row[2];
+                        $student->save();
+                        for($i = 3; $i<count($row); $i++){
+                            if(!empty($row[$i] || $row[$i] != null || $row[$i] != ""))
+                            \DB::table('addresses')->insert(['student_id'=>$student->id,'address'=>$row[$i]]);
+                        }
+                    } catch(Exception $e){
+                        $notStoredData[] = $row[2];
+                        \DB::rollBack();
                     }
-                } catch(Exception $e){
-                    \DB::rollBack();
+                    \DB::commit();
+                } else {
+                    $notStoredData[] = $row[2];
                 }
-                \DB::commit();
             }
             fclose($handle);
         }
         return back()
             ->with('success','You have successfully upload file.')
+            ->with('not_stored_data',$notStoredData)
             ->with('file',$request->file->getClientOriginalName());
    
     }

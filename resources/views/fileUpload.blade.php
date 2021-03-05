@@ -42,10 +42,12 @@
                 <div class="col-md-6">
                     <button type="submit" class="btn btn-success">Upload</button>
                 </div>
-   
+
             </div>
         </form>
-  
+    @if(Session::get('not_stored_data'))
+        <div>NOT ABLE TO STORE DATA OF FOLLOWING IDs {{ json_encode(Session::get('not_stored_data'))}}<div>
+    @endif   
       </div>
     </div>
 </div>
